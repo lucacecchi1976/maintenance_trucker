@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riepilogo Filiale</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Filiale: {{ branch.name }}</h1>
+        <p>Posizione: {{ branch.location }}</p>
+        <hr>
+        
+        <!-- Sezione Manutenzioni -->
+        <h2>Manutenzioni della Filiale</h2>
+        {% if maintenances %}
+            <ul class="list-group mb-3">
+                {% for maintenance in maintenances %}
+                    <li class="list-group-item">
+                        <strong>{{ maintenance.type }}</strong> - 
+                        Data: {{ maintenance.date.strftime('%d/%m/%Y') }}
+                        {% if maintenance.status %}
+                            <span class="text-success">(Completata)</span>
+                        {% else %}
+                            <span class="text-danger">(In Scadenza)</span>
+                        {% endif %}
+                        <br>
+                        <form action="/maintenance/{{ maintenance.id }}/complete" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-success btn-sm">Completa</button>
+                        </form>
+                        
+                        <form action="/maintenance/{{ maintenance.id }}/delete" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questa manutenzione?')">Elimina</button>
+                        </form>
+                        
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">Nessuna manutenzione registrata per questa filiale.</p>
+        {% endif %}
+        <hr>
+        <!-- Sezione Lavori -->
+        <h3>Lavori per la Filiale</h3>
+        {% if branch.work_items %}
+            <ul class="list-group mb-3">
+                {% for work in branch.work_items %}
+                    <li class="list-group-item">
+                        <strong>{{ work.description }}</strong> -
+                        {% if work.status %}
+                            <span class="text-success">Eseguita</span>
+                        {% else %}
+                            <span class="text-danger">Da Fare</span>
+                        {% endif %}
+                        <br>
+                        <form action="/work/{{ work.id }}/toggle_status" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm {% if work.status %}btn-warning{% else %}btn-success{% endif %}">
+                                {% if work.status %}Segna come Da Fare{% else %}Segna come Eseguita{% endif %}
+                            </button>
+                        </form>
+                        
+                        <form action="/work/{{ work.id }}/delete" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questo lavoro?')">Elimina</button>
+                        </form>
+                        
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">Nessun lavoro registrato per questa filiale.</p>
+        {% endif %}
+
+
+        <!-- Apparecchiature -->
+        <h2>Apparecchiature</h2>
+        {% if equipment %}
+            <ul class="list-group">
+                {% for eq in equipment %}
+                    <li class="list-group-item">
+                        <strong>{{ eq.name }}</strong> (Modello: {{ eq.model or 'N/A' }}, Serial: {{ eq.serial_number or 'N/A' }})
+                        <br>Data Installazione: {{ eq.installation_date or 'N/A' }}
+                        <form action="/delete_equipment/{{ eq.id }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questa apparecchiatura?')">Elimina</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nessuna apparecchiatura registrata per questa filiale.</p>
+        {% endif %}
+
+        <!-- Pulsanti Azioni -->
+        <hr>
+        <div class="mt-3">
+            <a href="/branch/{{ branch.id }}/maintenance" class="btn btn-primary">Manutenzioni</a>
+            <a href="/branch/{{ branch.id }}/edit" class="btn btn-warning">Modifica</a>
+            <form action="/delete_branch/{{ branch.id }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Sei sicuro di voler eliminare questa filiale?')">Elimina</button>
+            </form>
+            <a href="/" class="btn btn-secondary">Torna alla Homepage</a>
+        </div>
+    </div>
+</body>
+</html>

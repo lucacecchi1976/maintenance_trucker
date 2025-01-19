@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <style>
+        .branch-card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .branch-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .text-decoration-none {
+            text-decoration: none;
+            color: inherit;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">Gestione Filiali</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/populate">Popola Database</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h1 class="text-center">Gestione Filiali</h1>
+    <hr>
+
+    <!-- Barra di Ricerca -->
+    <form method="GET" action="/" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Cerca filiale per nome o posizione" value="{{ request.args.get('search', '') }}">
+            <button class="btn btn-primary" type="submit">Cerca</button>
+        </div>
+    </form>
+
+    <div class="text-end mb-3">
+        <a href="/populate" class="btn btn-primary">Popola il Database</a>
+    </div>
+
+    <!-- Elenco Filiali -->
+    <div class="row">
+        {% for branch in branches %}
+            <div class="col-md-4 mb-3">
+                <!-- Card cliccabile -->
+                <a href="/branch/{{ branch.id }}" class="text-decoration-none">
+                    <div class="card shadow-sm branch-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ branch.name }}</h5>
+                            <p class="card-text">{{ branch.location }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+        </div>
+        <div class="container mt-4">
+            <h1 class="text-center">Manutenzioni</h1>
+            <hr>
+        
+            <!-- Manutenzioni Scadute -->
+            <div class="mt-5">
+                <h2 class="text-danger">Manutenzioni Scadute</h2>
+                {% if expired_maintenances %}
+                    <ul class="list-group">
+                        {% for maintenance in expired_maintenances %}
+                            <li class="list-group-item">
+                                <strong class="text-danger">{{ maintenance.type }}</strong> - 
+                                Scaduta il: 
+                                <span class="text-danger">
+                                    {% if maintenance.next_due_date() %}
+                                        {{ maintenance.next_due_date().strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        Data non disponibile
+                                    {% endif %}
+                                </span>
+                                <br>
+                                Filiale: <a href="/branch/{{ maintenance.branch_id }}/maintenance">{{ maintenance.branch.name }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Nessuna manutenzione scaduta.</p>
+                {% endif %}
+            </div>
+        
+            <!-- Manutenzioni Imminenti -->
+            <div class="mt-5">
+                <h2>Manutenzioni Imminenti</h2>
+                {% if upcoming_maintenances %}
+                    <ul class="list-group">
+                        {% for maintenance in upcoming_maintenances %}
+                            <li class="list-group-item">
+                                <strong>{{ maintenance.type }}</strong> - 
+                                Scadenza il: 
+                                <span class="text-primary">
+                                    {% if maintenance.next_due_date() %}
+                                        {{ maintenance.next_due_date().strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        Data non disponibile
+                                    {% endif %}
+                                </span>
+                                <br>
+                                Filiale: <a href="/branch/{{ maintenance.branch_id }}/maintenance">{{ maintenance.branch.name }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Nessuna manutenzione imminente.</p>
+                {% endif %}
+            </div>
+        
+            <!-- Ultime Tre Manutenzioni Effettuate -->
+            <div class="mt-5">
+                <h2 class="text-success">Ultime Tre Manutenzioni Effettuate</h2>
+                {% if completed_maintenances %}
+                    <ul class="list-group">
+                        {% for maintenance in completed_maintenances %}
+                            <li class="list-group-item">
+                                <strong class="text-success">{{ maintenance.type }}</strong> - 
+                                Completata il: 
+                                <span class="text-success">
+                                    {{ maintenance.date.strftime('%d/%m/%Y') }}
+                                </span>
+                                <br>
+                                Filiale: <a href="/branch/{{ maintenance.branch_id }}/maintenance">{{ maintenance.branch.name }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Nessuna manutenzione completata di recente.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+    </div>
+</div>
+</body>
+</html>

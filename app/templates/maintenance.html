@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manutenzioni</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Manutenzioni per {{ branch.name }}</h1>
+        <p>Posizione: {{ branch.location }}</p>
+        <hr>
+
+        <!-- Elenco delle manutenzioni -->
+        <h2>Storico Manutenzioni</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Data</th>
+                    <th>Stato</th>
+                    <th>Scheda</th>
+                    <th>Azioni</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for maintenance in maintenances %}
+                    <tr>
+                        <td>{{ maintenance.type }}</td>
+                        <td>{{ maintenance.date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ 'Completata' if maintenance.status else 'Non completata' }}</td>
+			<td>
+			    	{% if maintenance.status %}
+		        	<span class="text-success">Completata</span>
+    				{% else %}
+        			<span class="text-danger">In Scadenza: {{ maintenance.next_due_date().strftime('%d/%m/%Y') }}</span>
+    				{% endif %}
+			</td>
+                        <td>
+                            {% if maintenance.photo %}
+                                <a href="{{ url_for('static', filename='uploads/' + maintenance.photo) }}" target="_blank">Visualizza</a>
+                            {% else %}
+                                Nessuna scheda
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not maintenance.status %}
+                                <form action="/maintenance/{{ maintenance.id }}/complete" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-success btn-sm">Completa</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- Pulsante per eliminare -->
+                            <form action="/maintenance/{{ maintenance.id }}/delete" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Sei sicuro di voler eliminare questa manutenzione?')">Elimina</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Form per aggiungere una manutenzione -->
+<h2>Aggiungi una nuova manutenzione</h2>
+<form method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="type" class="form-label">Tipo</label>
+        <select name="type" id="type" class="form-select" required>
+            <option value="Bimestrale">Bimestrale</option>
+            <option value="Semestrale">Semestrale</option>
+            <option value="Annuale">Annuale</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="date" class="form-label">Data della Manutenzione</label>
+        <input type="date" name="date" id="date" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label for="photo" class="form-label">Carica Scheda (Opzionale)</label>
+        <input type="file" name="photo" id="photo" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Aggiungi</button>
+</form>
+
+<!-- Form per Aggiungere un Nuovo Lavoro -->
+<h3>Aggiungi Lavoro per la Filiale</h3>
+<form method="POST" action="/branch/{{ branch.id }}/add_work">
+    <div class="mb-3">
+        <label for="description" class="form-label">Descrizione del Lavoro</label>
+        <input type="text" id="description" name="description" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Aggiungi</button>
+</form>
+<br>
+
+<div class="mt-4">
+    <a href="/" class="btn btn-secondary">Torna alla Home</a>
+    <a href="/branch/{{ branch.id }}" class="btn btn-primary">Torna alla Pagina Filiale</a>
+</div>
+
+    </div>
+</body>
+</html>
